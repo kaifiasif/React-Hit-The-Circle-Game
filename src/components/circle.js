@@ -18,7 +18,9 @@ class Circle extends Component {
       gameStartWarn: false,
     };
   }
-
+/**
+ *  Function init to no of circles.
+ */
   init = () => {
     const gameSize = 36;
     let defaultData = {};
@@ -69,7 +71,11 @@ class Circle extends Component {
       correctCount: 0,
     });
   };
-
+/**
+ * Function to check if the highlighted circle is clicked or not 
+ * If the highlighted circle is clicked it will increase the score count with one point 
+ * If the unhighlighted circle is clicked it will decrease the score count with one point
+ */
   checkCorrectness = (ele) => {
     let { gameData, circles, startGame } = this.state;
     if (startGame) {
