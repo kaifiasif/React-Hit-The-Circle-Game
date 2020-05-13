@@ -1,13 +1,17 @@
 import React, { Component } from 'react';
 import Popup from './popup';
 import '../App.css';
+import Cell from './Cell';
 
 class Circle extends Component {
   constructor(props) {
     super(props);
+    const { defaultData, circles, selectedCircle } = this.init();
     this.state = {
       userCount: 0,
-      obj: {},
+      circles, // [1,2,3,4,....36]
+      selectedCircle,
+      gameData: defaultData, //{1: 0, 2: 0... 36: 0}// 0 -default 1-selected/highlighted  2-correct 3-wrong
       startGame: false,
       correctCount: 0,
       showPopup: false,
@@ -15,9 +19,31 @@ class Circle extends Component {
     };
   }
 
-  componentDidMount() {
-    this.generateCircle();
-  }
+  init = () => {
+    const gameSize = 36;
+    let defaultData = {};
+    let tempCircles = [];
+    for (let i = 1; i <= gameSize; i++) {
+      defaultData[i] = 0;
+      tempCircles.push(i);
+    }
+    return {
+      defaultData,
+      circles: shuffleArray(tempCircles),
+      selectedCircle: -1,
+    };
+  };
+
+  generateNewPoint = () => {
+    const { gameData, circles } = this.state;
+    let newSelectedCircle = circles.pop();
+    gameData[newSelectedCircle] = 1;
+    this.setState({
+      gameData,
+      selectedCircle: newSelectedCircle,
+      circles,
+    });
+  };
   /**
    * playStart function this is called when we click on play button
    * Changing state of startGame to true
@@ -28,6 +54,7 @@ class Circle extends Component {
       startGame: true,
       gameStartWarn: false,
     });
+    this.generateNewPoint();
   };
 
   /**
@@ -36,55 +63,27 @@ class Circle extends Component {
    * Changes the startGame state to false
    */
   playStop = () => {
-    this.setState(
-      {
-        userCount: 0,
-        startGame: false,
-        correctCount: 0,
-      },
-      () => {
-        this.generateCircle();
-      }
-    );
-  };
-
-  /**
-   * function to generate circle
-   */
-
-  generateCircle = () => {
-    let obj = {};
-    let correctCount = 0;
-    for (let i = 1; i <= 36; i++) {
-      var randomNumber = Math.random() >= 0.5;
-      if (randomNumber) {
-        correctCount++;
-      }
-      obj[i] = randomNumber;
-    }
     this.setState({
-      obj,
-      correctCount,
+      userCount: 0,
+      startGame: false,
+      correctCount: 0,
     });
   };
 
   checkCorrectness = (ele) => {
-    let { obj, startGame } = this.state;
+    let { gameData, circles, startGame } = this.state;
     if (startGame) {
-      if (obj[ele]) {
-        this.setState(
-          {
-            userCount: this.state.userCount + 1,
-          },
-          this.correct(ele)
-        );
+      let random = 5; //less than length of circles array
+      let selectedCircle = circles[random]; //
+      gameData[selectedCircle] = 1;
+      if (this.state.selectedCircle == ele) {
+        this.setState({
+          userCount: this.state.userCount + 1,
+        });
       } else {
-        this.setState(
-          {
-            userCount: this.state.userCount - 1,
-          },
-          this.wrong(ele)
-        );
+        this.setState({
+          userCount: this.state.userCount - 1,
+        });
       }
     } else {
       this.setState({
@@ -93,30 +92,33 @@ class Circle extends Component {
     }
   };
 
-  correct = (ele) => {
-    let { obj } = this.state;
-    obj[ele] = 'correct';
-  };
-
-  wrong = (ele) => {
-    let { obj } = this.state;
-    obj[ele] = 'wrong';
-  };
-
+  /** Function to change the state of showPopup to true to display the popup */
   showPopup = () => {
+    const { defaultData, circles, selectedCircle } = this.init();
     this.setState({
       showPopup: true,
+      score: 10,
+      gameData: defaultData,
+      circles,
+      selectedCircle,
     });
   };
-
+  /** Function to change to state of showPopup to false, using this function we are closing the popup */
   closePopup = () => {
     this.setState({
       showPopup: false,
     });
   };
 
+  computeStatus = (pos) => {
+    let { gameData, selectedCircle } = this.state;
+    if (parseInt(pos, 10) === selectedCircle) return 'selected';
+    else if (gameData[pos] === 2) return 'hit';
+    else if (gameData[pos] === 3) return 'miss';
+  };
+
   render() {
-    let { userCount, obj, startGame, correctCount, gameStartWarn } = this.state;
+    let { userCount, gameData, gameStartWarn, selectedCircle } = this.state;
     return (
       <div className="full-area">
         <h3>Hit the circle</h3>
@@ -125,20 +127,20 @@ class Circle extends Component {
           Score<span className="score-count">{userCount}</span>
         </div>
         {gameStartWarn ? <div className="warn-text">First click the play button</div> : ''}
-        <hr></hr>
+        <hr />
         <div className="outer-area">
-          {Object.keys(obj).map((ele) => {
-            let val = obj[ele];
-            return val === 'wrong' ? (
-              <div className="circle">W</div>
-            ) : val === 'correct' ? (
-              <div className="circle">C</div>
-            ) : (
-              <div key={ele} className="circle" onClick={() => this.checkCorrectness(ele)}></div>
+          {Object.keys(gameData).map((ele) => {
+            return (
+              <Cell
+                selectedCircle={selectedCircle}
+                val={ele}
+                status={this.computeStatus(ele)}
+                onClick={() => this.checkCorrectness(ele)}
+              />
             );
           })}
         </div>
-        <hr></hr>
+        <hr />
         <div className="buttons">
           <button className="play" onClick={this.playStart}>
             Play
@@ -147,6 +149,7 @@ class Circle extends Component {
             Stop
           </button>
         </div>
+        {/** Code for the popup,   */}
         {this.state.showPopup ? (
           <Popup
             text={`Your final score is ${userCount}`}
@@ -160,3 +163,13 @@ class Circle extends Component {
 }
 
 export default Circle;
+
+function shuffleArray(array) {
+  for (var i = array.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = array[i];
+    array[i] = array[j];
+    array[j] = temp;
+  }
+  return array;
+}
