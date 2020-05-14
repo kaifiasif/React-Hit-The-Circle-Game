@@ -16,11 +16,12 @@ class Circle extends Component {
       correctCount: 0,
       showPopup: false,
       gameStartWarn: false,
+      timer: null,
     };
   }
-/**
- *  Function init to no of circles.
- */
+  /**
+   *  Function init to no of circles.
+   */
   init = () => {
     const gameSize = 36;
     let defaultData = {};
@@ -57,31 +58,42 @@ class Circle extends Component {
       gameStartWarn: false,
     });
     this.generateNewPoint();
+    this.randomHighlight();
   };
-
+  randomHighlight = () => {
+    console.log('Status', this.state.startGame);
+    let timer = setTimeout(this.playStart, 5000);
+    this.setState({
+      timer: timer,
+    });
+  };
   /**
    * playStop function is when we click on stop button
    * Changes the curent score  to 0 (zero)
    * Changes the startGame state to false
    */
   playStop = () => {
+    let timer = this.state.timer;
+    clearTimeout(timer);
     this.setState({
       userCount: 0,
       startGame: false,
       correctCount: 0,
     });
   };
-/**
- * Function to check if the highlighted circle is clicked or not 
- * If the highlighted circle is clicked it will increase the score count with one point 
- * If the unhighlighted circle is clicked it will decrease the score count with one point
- */
+  /**
+   * Function to check if the highlighted circle is clicked or not
+   * If the highlighted circle is clicked it will increase the score count with one point
+   * If the unhighlighted circle is clicked it will decrease the score count with one point
+   */
   checkCorrectness = (ele) => {
     let { gameData, circles, startGame } = this.state;
+
     if (startGame) {
       let random = 5; //less than length of circles array
       let selectedCircle = circles[random]; //
       gameData[selectedCircle] = 1;
+
       if (this.state.selectedCircle == ele) {
         this.setState({
           userCount: this.state.userCount + 1,
@@ -107,11 +119,13 @@ class Circle extends Component {
       gameData: defaultData,
       circles,
       selectedCircle,
+      startGame: false,
     });
   };
   /** Function to change to state of showPopup to false, using this function we are closing the popup */
   closePopup = () => {
     this.setState({
+      startGame: false,
       showPopup: false,
     });
   };
