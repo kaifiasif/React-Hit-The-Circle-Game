@@ -62,7 +62,7 @@ class Circle extends Component {
   };
   randomHighlight = () => {
     console.log('Status', this.state.startGame);
-    let timer = setTimeout(this.playStart, 5000);
+    let timer = setTimeout(this.playStart, 3000);
     this.setState({
       timer: timer,
     });
