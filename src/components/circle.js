@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Popup from './popup';
 import '../App.css';
-import Cell from './Cell';
+import Cell from './cell';
 
 class Circle extends Component {
   constructor(props) {
